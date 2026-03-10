@@ -1,35 +1,34 @@
 #include "MainPlayerController.h"
 
-#include "ChatSystem/UI/NumberBaseballWidget.h"
-
+#include "EnhancedInputComponent.h"
+#include "ChatSystem/Interaction/NumberBaseballInteraction.h"
 void AMainPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	
+}
 
-	if (!IsLocalController())
+void AMainPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-		return;
+		EIC->BindAction(InteractAction, ETriggerEvent::Started, this, &ThisClass::TryInteract);
 	}
+}
 
-	if (!NumberBaseballWidgetClass)
+void AMainPlayerController::TryInteract()
+{
+	UE_LOG(LogTemp, Log, TEXT("TryInteract"));
+	if (!IsLocalController()) return;
+	
+	if (CurrentInteractable)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("NumberBaseballWidgetClass is not set."));
-		return;
+		CurrentInteractable->Interact(this);
 	}
+}
 
-	NumberBaseballWidget = CreateWidget<UNumberBaseballWidget>(this, NumberBaseballWidgetClass);
-	if (!NumberBaseballWidget)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to create NumberBaseballWidget."));
-		return;
-	}
-
-	NumberBaseballWidget->AddToViewport();
-
-	FInputModeGameAndUI InputMode;
-	InputMode.SetWidgetToFocus(NumberBaseballWidget->TakeWidget());
-	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-
-	SetInputMode(InputMode);
-	bShowMouseCursor = true;
+void AMainPlayerController::SetCurrentIneractable(ANumberBaseballInteraction* Interactable)
+{
+	CurrentInteractable =  Interactable;
 }

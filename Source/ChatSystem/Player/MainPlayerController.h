@@ -1,8 +1,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InputAction.h"
 #include "GameFramework/PlayerController.h"
 #include "MainPlayerController.generated.h"
+
+class ANumberBaseballInteraction;
 
 UCLASS()
 class CHATSYSTEM_API AMainPlayerController : public APlayerController
@@ -10,10 +13,16 @@ class CHATSYSTEM_API AMainPlayerController : public APlayerController
 	GENERATED_BODY()
 protected:
 	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<class UNumberBaseballWidget> NumberBaseballWidgetClass;
-
+private:
+	void TryInteract();
+	
 	UPROPERTY()
-	TObjectPtr<UNumberBaseballWidget> NumberBaseballWidget;
+	TObjectPtr<ANumberBaseballInteraction> CurrentInteractable;
+public:
+	void SetCurrentIneractable(ANumberBaseballInteraction* Interactable);
+	
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> InteractAction;
 };
