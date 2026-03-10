@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Components/BoxComponent.h"
 #include "GameFramework/Actor.h"
 #include "NumberBaseballInteraction.generated.h"
 
@@ -16,5 +17,12 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TObjectPtr<UStaticMeshComponent> StaticMesh;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TObjectPtr<UBoxComponent> BoxVolume;
+
+	
+	
 };

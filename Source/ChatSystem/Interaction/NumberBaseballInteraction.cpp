@@ -3,7 +3,13 @@
 
 ANumberBaseballInteraction::ANumberBaseballInteraction()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+	
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
+	SetRootComponent(StaticMesh);
+	
+	BoxVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxVolume"));
+	BoxVolume->SetupAttachment(StaticMesh);
 }
 
 void ANumberBaseballInteraction::BeginPlay()
@@ -12,8 +18,4 @@ void ANumberBaseballInteraction::BeginPlay()
 	
 }
 
-void ANumberBaseballInteraction::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
 
