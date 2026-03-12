@@ -10,6 +10,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Components/WidgetInteractionComponent.h"
+#include "Player/MainPlayerController.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -52,6 +54,32 @@ AChatSystemCharacter::AChatSystemCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	
+	WidgetInteraction = CreateDefaultSubobject<UWidgetInteractionComponent>(TEXT("WidgetInteraction"));
+	WidgetInteraction->SetupAttachment(FollowCamera);
+	WidgetInteraction->InteractionDistance = 1000.f;
+	WidgetInteraction->InteractionSource = EWidgetInteractionSource::CenterScreen;
+	WidgetInteraction->bEnableHitTesting = true;
+	WidgetInteraction->SetActive(false);
+	WidgetInteraction->bShowDebug = true;
+}
+
+void AChatSystemCharacter::OnClickPressed()
+{
+	UE_LOG(LogTemp,Log,TEXT("ClickPressed"));
+	if (WidgetInteraction && WidgetInteraction->IsActive())
+	{
+		WidgetInteraction->PressPointerKey(EKeys::LeftMouseButton);
+	}
+}
+
+void AChatSystemCharacter::OnClickReleased()
+{
+	UE_LOG(LogTemp,Log,TEXT("ClickReleased"));
+	if (WidgetInteraction && WidgetInteraction->IsActive())
+	{
+		WidgetInteraction->ReleasePointerKey(EKeys::LeftMouseButton);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,6 +113,10 @@ void AChatSystemCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AChatSystemCharacter::Look);
+		
+		EnhancedInputComponent->BindAction(ClickAction, ETriggerEvent::Started, this, &AChatSystemCharacter::OnClickPressed);
+		EnhancedInputComponent->BindAction(ClickAction, ETriggerEvent::Completed, this, &AChatSystemCharacter::OnClickReleased);
+	
 	}
 	else
 	{

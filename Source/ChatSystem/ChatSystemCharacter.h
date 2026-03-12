@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "Components/WidgetInteractionComponent.h"
 #include "ChatSystemCharacter.generated.h"
 
 class USpringArmComponent;
@@ -43,11 +44,20 @@ class AChatSystemCharacter : public ACharacter
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
-
+	
+	UPROPERTY(EditDefaultsOnly, Category = Input)
+	UInputAction* ClickAction;
+	
+	
 public:
 	AChatSystemCharacter();
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
+	TObjectPtr<UWidgetInteractionComponent> WidgetInteraction;
 
+private:
+	void OnClickPressed();
+	void OnClickReleased();
 protected:
 
 	/** Called for movement input */

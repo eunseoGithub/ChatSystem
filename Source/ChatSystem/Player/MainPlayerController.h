@@ -23,6 +23,9 @@ private:
 public:
 	void SetCurrentIneractable(ANumberBaseballInteraction* Interactable);
 	
+public:
+	bool bWidgetOpen = false;
+	
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> InteractAction;
 };

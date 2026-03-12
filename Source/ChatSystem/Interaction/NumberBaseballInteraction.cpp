@@ -1,9 +1,9 @@
 #include "NumberBaseballInteraction.h"
-
 #include "ChatSystem/ChatSystemCharacter.h"
 #include "ChatSystem/Player/MainPlayerController.h"
-
-
+#include "ChatSystem/UI/NumberBaseballWidget.h"
+#include "Framework/Application/SlateApplication.h" 
+#include "Components/WidgetInteractionComponent.h"
 ANumberBaseballInteraction::ANumberBaseballInteraction()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -24,11 +24,15 @@ ANumberBaseballInteraction::ANumberBaseballInteraction()
 	
 	WidgetComponent->SetVisibility(false);
 	
+	
+	
 }
 
 void ANumberBaseballInteraction::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	WidgetComponent->SetWindowFocusable(true);
 	
 	BoxVolume->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnBoxBeginOverlap);
 	BoxVolume->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnBoxEndOverlap);
@@ -54,7 +58,6 @@ void ANumberBaseballInteraction::OnBoxEndOverlap(UPrimitiveComponent* Overlapped
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	UE_LOG(LogTemp,Log,TEXT("EndOverlap"));
-	
 	if (ACharacter* Character = Cast<AChatSystemCharacter>(OtherActor))
 	{
 		if (AMainPlayerController* PC = Cast<AMainPlayerController>(InteractController))
@@ -63,13 +66,45 @@ void ANumberBaseballInteraction::OnBoxEndOverlap(UPrimitiveComponent* Overlapped
 		}
 		InteractController = nullptr; 
 	}
-	
 }
 
 void ANumberBaseballInteraction::Interact(APlayerController* InstigatorController)
 {
 	bool bIsVisible = WidgetComponent->IsVisible();
 	WidgetComponent->SetVisibility(!bIsVisible);
+
+	AChatSystemCharacter* Char = Cast<AChatSystemCharacter>(InstigatorController->GetPawn());
+
+	if (!bIsVisible)
+	{
+		UE_LOG(LogTemp,Log,TEXT("Interact On"));
+		
+		FInputModeGameAndUI InputMode;
+		InputMode.SetHideCursorDuringCapture(false);
+		InstigatorController->SetShowMouseCursor(true);
+		InstigatorController->SetInputMode(InputMode);
+
+		if (Char && Char->WidgetInteraction)
+		{
+			Char->WidgetInteraction->SetActive(true);
+		}
+
+		if (UNumberBaseballWidget* Widget = Cast<UNumberBaseballWidget>(WidgetComponent->GetUserWidgetObject()))
+		{
+			Widget->OwnerInteraction = this;
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp,Log,TEXT("Interact Off"));
+		InstigatorController->SetShowMouseCursor(false);
+		InstigatorController->SetInputMode(FInputModeGameOnly());
+
+		if (Char && Char->WidgetInteraction)
+		{
+			Char->WidgetInteraction->SetActive(false);
+		}
+	}
 }
 
 

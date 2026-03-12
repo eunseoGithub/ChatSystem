@@ -1,11 +1,10 @@
 #include "MainPlayerController.h"
-
 #include "EnhancedInputComponent.h"
 #include "ChatSystem/Interaction/NumberBaseballInteraction.h"
+
 void AMainPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void AMainPlayerController::SetupInputComponent()
@@ -25,6 +24,7 @@ void AMainPlayerController::TryInteract()
 	if (CurrentInteractable)
 	{
 		CurrentInteractable->Interact(this);
+		bWidgetOpen = !bWidgetOpen;
 	}
 }
 
