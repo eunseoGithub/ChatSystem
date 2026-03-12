@@ -24,8 +24,6 @@ ANumberBaseballInteraction::ANumberBaseballInteraction()
 	
 	WidgetComponent->SetVisibility(false);
 	
-	
-	
 }
 
 void ANumberBaseballInteraction::BeginPlay()
@@ -36,13 +34,13 @@ void ANumberBaseballInteraction::BeginPlay()
 	
 	BoxVolume->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnBoxBeginOverlap);
 	BoxVolume->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnBoxEndOverlap);
-	
 }
 
 void ANumberBaseballInteraction::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	UE_LOG(LogTemp,Log,TEXT("BeginOverlap"));
+	
 	if (ACharacter* Character = Cast<AChatSystemCharacter>(OtherActor))
 	{
 		AMainPlayerController* PC = Cast<AMainPlayerController>(Character->GetController());
@@ -58,6 +56,7 @@ void ANumberBaseballInteraction::OnBoxEndOverlap(UPrimitiveComponent* Overlapped
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	UE_LOG(LogTemp,Log,TEXT("EndOverlap"));
+	
 	if (ACharacter* Character = Cast<AChatSystemCharacter>(OtherActor))
 	{
 		if (AMainPlayerController* PC = Cast<AMainPlayerController>(InteractController))
@@ -70,6 +69,9 @@ void ANumberBaseballInteraction::OnBoxEndOverlap(UPrimitiveComponent* Overlapped
 
 void ANumberBaseballInteraction::Interact(APlayerController* InstigatorController)
 {
+	AMainPlayerController* PC = Cast<AMainPlayerController>(InstigatorController);
+	if (!IsValid(PC)) return;
+	
 	bool bIsVisible = WidgetComponent->IsVisible();
 	WidgetComponent->SetVisibility(!bIsVisible);
 
@@ -87,22 +89,26 @@ void ANumberBaseballInteraction::Interact(APlayerController* InstigatorControlle
 		if (Char && Char->WidgetInteraction)
 		{
 			Char->WidgetInteraction->SetActive(true);
+			PC->ServerRPCSetWidgetOpen(true);
 		}
 
 		if (UNumberBaseballWidget* Widget = Cast<UNumberBaseballWidget>(WidgetComponent->GetUserWidgetObject()))
 		{
 			Widget->OwnerInteraction = this;
+			Widget->OnWidgetOpened();
 		}
 	}
 	else
 	{
 		UE_LOG(LogTemp,Log,TEXT("Interact Off"));
+		
 		InstigatorController->SetShowMouseCursor(false);
 		InstigatorController->SetInputMode(FInputModeGameOnly());
 
 		if (Char && Char->WidgetInteraction)
 		{
 			Char->WidgetInteraction->SetActive(false);
+			PC->ServerRPCSetWidgetOpen(false);
 		}
 	}
 }

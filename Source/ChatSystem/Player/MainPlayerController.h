@@ -23,8 +23,13 @@ private:
 public:
 	void SetCurrentIneractable(ANumberBaseballInteraction* Interactable);
 	
+	UFUNCTION(Server, Reliable)
+	void ServerRPCSetPlayerName(const FString& InName);
+	
+	UFUNCTION(Server,Reliable)
+	void ServerRPCSetWidgetOpen(bool bIsOpen);
+	
 public:
-	bool bWidgetOpen = false;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> InteractAction;

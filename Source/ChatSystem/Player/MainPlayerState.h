@@ -8,4 +8,11 @@ UCLASS()
 class CHATSYSTEM_API AMainPlayerState : public APlayerState
 {
 	GENERATED_BODY()
+public:
+	bool bIsNameSet = false;
+	
+	UPROPERTY(Replicated)
+	bool bIsWidgetOpen = false;
+	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

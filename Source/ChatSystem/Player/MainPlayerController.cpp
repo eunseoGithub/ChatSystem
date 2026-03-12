@@ -1,6 +1,8 @@
 #include "MainPlayerController.h"
 #include "EnhancedInputComponent.h"
+#include "MainPlayerState.h"
 #include "ChatSystem/Interaction/NumberBaseballInteraction.h"
+#include "ChatSystem/System/MainGameModeBase.h"
 
 void AMainPlayerController::BeginPlay()
 {
@@ -24,11 +26,40 @@ void AMainPlayerController::TryInteract()
 	if (CurrentInteractable)
 	{
 		CurrentInteractable->Interact(this);
-		bWidgetOpen = !bWidgetOpen;
+		AMainPlayerState* PS = GetPlayerState<AMainPlayerState>();
+		if (IsValid(PS))
+			PS->bIsWidgetOpen = !(PS->bIsWidgetOpen);
 	}
 }
 
 void AMainPlayerController::SetCurrentIneractable(ANumberBaseballInteraction* Interactable)
 {
 	CurrentInteractable =  Interactable;
+}
+
+void AMainPlayerController::ServerRPCSetWidgetOpen_Implementation(bool bIsOpen)
+{
+	AMainPlayerState* PS = GetPlayerState<AMainPlayerState>();
+	if (!IsValid(PS)) return;
+	
+	AMainGameModeBase* GM = Cast<AMainGameModeBase>(GetWorld()->GetAuthGameMode());
+	if (!IsValid(GM)) return;
+	
+	PS->bIsWidgetOpen = bIsOpen;
+	
+	if (bIsOpen)
+		GM->OnPlayerWidgetOpened();
+	else
+		GM->OnPlayerWidgetClosed(this);
+	
+}
+
+void AMainPlayerController::ServerRPCSetPlayerName_Implementation(const FString& InName)
+{
+	AMainPlayerState* PS = GetPlayerState<AMainPlayerState>();
+	if (IsValid(PS))
+	{
+		PS->SetPlayerName(InName);
+		PS->bIsNameSet = true;
+	}
 }

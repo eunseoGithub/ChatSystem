@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/Button.h"
+#include "ChatSystem/System/MainGameModeBase.h"
 #include  "Components/EditableTextBox.h"
 #include "Components/Image.h"
 #include "Components/ScrollBox.h"
@@ -17,7 +17,6 @@ class CHATSYSTEM_API UNumberBaseballWidget : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
-	
 	UFUNCTION(BlueprintCallable)
 	void AddGuessResult(const FString& Guess, int32 Strike, int32 Ball, bool bIsOut);
 	
@@ -34,6 +33,9 @@ public:
 private:
 	UFUNCTION()
 	void OnInputCommitted(const FText& Text, ETextCommit::Type CommitMethod);
+	
+	UFUNCTION()
+	void OnGamePhaseChanged(ENumberBaseballPhase NewPhase); // callback
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UEditableTextBox> ChatInput;
@@ -55,4 +57,6 @@ private:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> AttemptImage_3;
+private:
+	ENumberBaseballPhase CachedGamePhase = ENumberBaseballPhase::Waiting;
 };
