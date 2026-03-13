@@ -27,9 +27,6 @@ void AMainPlayerController::TryInteract()
 	if (CurrentInteractable)
 	{
 		CurrentInteractable->Interact(this);
-		AMainPlayerState* PS = GetPlayerState<AMainPlayerState>();
-		if (IsValid(PS))
-			PS->bIsWidgetOpen = !(PS->bIsWidgetOpen);
 	}
 }
 
@@ -38,13 +35,14 @@ void AMainPlayerController::SetCurrentIneractable(ANumberBaseballInteraction* In
 	CurrentInteractable =  Interactable;
 }
 
-void AMainPlayerController::ClientRPCConsumeAttempt_Implementation()
+
+void AMainPlayerController::ClientRPCConsumeAttempt_Implementation(int32 RemainingAttempt)
 {
 	if (!IsValid(CurrentInteractable)) return;
 	UNumberBaseballWidget* Widget = CurrentInteractable->GetWidget();
 	if (IsValid(Widget))
 	{
-		Widget->ConsumeAttempt();
+		Widget->ConsumeAttempt(RemainingAttempt);
 	}
 }
 
@@ -79,7 +77,24 @@ void AMainPlayerController::ServerRPCChatMessage_Implementation(const FString& M
 	FString Result = GM->JudgeResult(GM->GetSecretNumber(),Message);
 	GM->BroadcastChatMessage(TEXT("Server"),Result);
 	
-	ClientRPCConsumeAttempt();
+	PS->AttemptCount--;
+	ClientRPCConsumeAttempt(PS->AttemptCount);
+	
+	if (Result == TEXT("3S0B"))
+	{
+		FString WinMessage = FString::Printf(TEXT("%s 승리!"), *SenderName);
+		GM->BroadcastChatMessage(TEXT("Server"),WinMessage);
+		GM->EndGame(SenderName);
+		return;
+	}
+	
+	if (GM->CheckAllAttemptsUsed())
+	{
+		GM->BroadcastChatMessage(TEXT("Server"), TEXT("무승부"));
+		GM->EndGame(TEXT(""));
+		return;
+	}
+	
 	GM->SwitchTurn();
 }
 

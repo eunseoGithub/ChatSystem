@@ -28,7 +28,7 @@ public:
 	
 	void OnWidgetOpened();
 	
-	void ConsumeAttempt();
+	void ConsumeAttempt(int32 RemainingAttempt);
 	
 	UPROPERTY()
 	TObjectPtr<ANumberBaseballInteraction> OwnerInteraction;
@@ -62,7 +62,6 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> AttemptImage_3;
 	
-	int32 AttemptCount = 3;
 	bool bMyTurn = false;
 private:
 	ENumberBaseballPhase CachedGamePhase = ENumberBaseballPhase::Waiting;

@@ -38,7 +38,7 @@ public:
 	void ClientRPCSetTurn(bool bIsMyTurn);
 	
 	UFUNCTION(Client, Reliable)
-	void ClientRPCConsumeAttempt();
+	void ClientRPCConsumeAttempt(int32 RemainingAttempt);
 	
 public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")

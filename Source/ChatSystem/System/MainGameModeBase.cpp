@@ -109,8 +109,10 @@ void AMainGameModeBase::OnPlayerNameWrite()
 		{
 			GS->GamePhase = ENumberBaseballPhase::Playing;
 			GS->OnGamePhaseChanged.Broadcast(ENumberBaseballPhase::Playing);
+			//시크릿 넘버 생성
 			SecretNumber = GenerateSecretNumber();
 			UE_LOG(LogTemp,Error, TEXT("SecretNumber : %s"),*SecretNumber);
+			
 			CurrentTurnIndex = 0;
 			for (int32 i = 0; i < AllPlayerController.Num(); i++)
 			{
@@ -160,6 +162,36 @@ void AMainGameModeBase::SwitchTurn()
 			AllPlayerController[i]->ClientRPCSetTurn(i == CurrentTurnIndex);
 		}
 	}
+}
+
+void AMainGameModeBase::EndGame(const FString& WinnerName)
+{
+	AMainGameStateBase* GS = GetGameState<AMainGameStateBase>();
+	if (!IsValid(GS)) return;
+	
+	if (WinnerName.IsEmpty())
+	{
+		BroadcastChatMessage(TEXT("Server"),TEXT("무승부! 모든 기회 소진"));
+	}
+	else
+	{
+		FString Msg = FString::Printf(TEXT("%s 승리! 정답 : %s"), *WinnerName, *SecretNumber);
+		BroadcastChatMessage(TEXT("Server"),Msg);
+	}
+	GS->GamePhase = ENumberBaseballPhase::GameOver;
+	GS->OnGamePhaseChanged.Broadcast(ENumberBaseballPhase::GameOver);
+}
+
+bool AMainGameModeBase::CheckAllAttemptsUsed() const
+{
+	for (AMainPlayerController* PC : AllPlayerController)
+	{
+		if (!IsValid(PC)) continue;
+		AMainPlayerState* PS = PC->GetPlayerState<AMainPlayerState>();
+		if (IsValid(PS) && PS->AttemptCount > 0)
+			return false;
+	}
+	return true;
 }
 
 FString AMainGameModeBase::JudgeResult(const FString& InSecretNumberString, const FString& InGuessNumberString)

@@ -45,6 +45,9 @@ public:
 	const FString& GetSecretNumber() const {return SecretNumber;}
 	//턴 체인지
 	void SwitchTurn();
+	
+	void EndGame(const FString& WinnerName);
+	bool CheckAllAttemptsUsed() const;
 protected:
 	TArray<TObjectPtr<AMainPlayerController>> AllPlayerController;
 	static constexpr int32 RequirePlayerCount = 2;

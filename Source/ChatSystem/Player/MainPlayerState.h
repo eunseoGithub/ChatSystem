@@ -15,5 +15,8 @@ public:
 	UPROPERTY(Replicated)
 	bool bIsWidgetOpen = false;
 	
+	UPROPERTY(Replicated)
+	int32 AttemptCount = 3;
+	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

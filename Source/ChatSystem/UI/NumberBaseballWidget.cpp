@@ -11,6 +11,7 @@ void UNumberBaseballWidget::NativeConstruct()
 	if (IsValid(GS))
 	{
 		GS->OnGamePhaseChanged.AddDynamic(this, &UNumberBaseballWidget::OnGamePhaseChanged);
+		OnGamePhaseChanged(GS->GamePhase);
 	}
 	if (ChatInput)
 	{
@@ -41,6 +42,8 @@ void UNumberBaseballWidget::OnGamePhaseChanged(ENumberBaseballPhase NewPhase)
 	case ENumberBaseballPhase::WriteName:
 		ChatInput->SetIsEnabled(true);
 		TurnText->SetText(FText::FromString("Login.."));
+		break;
+	case ENumberBaseballPhase::Playing:
 		break;
 	case ENumberBaseballPhase::GameOver:
 		ChatInput->SetIsEnabled(false);
@@ -108,11 +111,9 @@ void UNumberBaseballWidget::OnWidgetOpened()
 	ChatBox->ScrollToEnd();
 }
 
-void UNumberBaseballWidget::ConsumeAttempt()
+void UNumberBaseballWidget::ConsumeAttempt(int32 RemainingAttempt)
 {
-	AttemptCount--;
-
-	switch (AttemptCount)
+	switch (RemainingAttempt)
 	{
 	case 2:
 		if (AttemptImage_3) AttemptImage_3->SetVisibility(ESlateVisibility::Hidden);
@@ -171,7 +172,7 @@ void UNumberBaseballWidget::OnInputCommitted(const FText& Text, ETextCommit::Typ
 		}
 		else
 		{
-			if (AttemptCount > 0 && bMyTurn)
+			if (bMyTurn)
 			{
 				PC->ServerRPCChatMessage(Input);
 			}
