@@ -39,7 +39,6 @@ void AMainGameModeBase::OnPostLogin(AController* NewPlayer)
 	{
 		AllPlayerController.Add(PlayerController);
 	}
-	TryStartGame();
 }
 
 void AMainGameModeBase::Logout(AController* Exiting)
@@ -66,9 +65,9 @@ void AMainGameModeBase::OnPlayerWidgetOpened()
 		AMainGameStateBase* GS = GetGameState<AMainGameStateBase>();
 		if (IsValid(GS) && GS->GamePhase == ENumberBaseballPhase::Waiting)
 		{
-			GS->GamePhase = ENumberBaseballPhase::Playing;
-			GS->OnGamePhaseChanged.Broadcast(ENumberBaseballPhase::Playing);
-			SecretNumber = GenerateSecretNumber();
+			GS->GamePhase = ENumberBaseballPhase::WriteName;
+			GS->OnGamePhaseChanged.Broadcast(ENumberBaseballPhase::WriteName);
+
 		}
 	}
 }
@@ -94,28 +93,80 @@ void AMainGameModeBase::OnPlayerWidgetClosed(AMainPlayerController* ClosedPlayer
 	}
 }
 
-void AMainGameModeBase::TryStartGame()
+void AMainGameModeBase::OnPlayerNameWrite()
 {
-	if (AllPlayerController.Num() < RequirePlayerCount) return;
-	//
-	// AMainGameStateBase* GS = GetGameState<AMainGameStateBase>();
-	// if (!IsValid(GS)) return;
-	// SecretNumber = GenerateSecretNumber();
-	//
-	// UE_LOG(LogTemp, Log, TEXT("Game Started. SecretNumber : %s"), *SecretNumber);
-	//
-	// if (GS->GamePhase == ENumberBaseballPhase::Waiting)
-	// {
-	// 	GS->GamePhase = ENumberBaseballPhase::Playing;
-	// 	GS->OnGamePhaseChanged.Broadcast(ENumberBaseballPhase::Playing);
-	// }
+	int32 WriteName = 0;
+	for (AMainPlayerController* PC : AllPlayerController)
+	{
+		AMainPlayerState* PS = PC->GetPlayerState<AMainPlayerState>();
+		if (IsValid(PS) && PS->bIsNameSet)
+			WriteName++;
+	}
+	if (WriteName >= RequirePlayerCount)
+	{
+		AMainGameStateBase* GS = GetGameState<AMainGameStateBase>();
+		if (IsValid(GS) && GS->GamePhase == ENumberBaseballPhase::WriteName)
+		{
+			GS->GamePhase = ENumberBaseballPhase::Playing;
+			GS->OnGamePhaseChanged.Broadcast(ENumberBaseballPhase::Playing);
+			SecretNumber = GenerateSecretNumber();
+			UE_LOG(LogTemp,Error, TEXT("SecretNumber : %s"),*SecretNumber);
+			CurrentTurnIndex = 0;
+			for (int32 i = 0; i < AllPlayerController.Num(); i++)
+			{
+				if (IsValid(AllPlayerController[i]))
+				{
+					AllPlayerController[i]->ClientRPCSetTurn(i == 0);
+				}
+			}
+		}
+	}
+}
+
+void AMainGameModeBase::BroadcastChatMessage(const FString& SenderName, const FString& Message)
+{
+	for (AMainPlayerController* PC : AllPlayerController)
+	{
+		if (IsValid(PC))
+		{
+			PC->ClientRPCReceiveChatMessage(SenderName,Message);	
+		}
+	}
+}
+
+bool AMainGameModeBase::IsValidGuess(const FString& Input) const
+{
+	if (Input.Len() != 3) return false; // 3자리
+	
+	TSet<TCHAR> UsedDigits;
+	for (int32 i = 0; i < Input.Len(); i++)
+	{
+		TCHAR Ch = Input[i];
+		if (Ch < '1' || Ch > '9') return false; // 0도 제외
+		if (UsedDigits.Contains(Ch)) return false;//중복
+		UsedDigits.Add(Ch);
+	}
+	return true;
+}
+
+void AMainGameModeBase::SwitchTurn()
+{
+	CurrentTurnIndex = (CurrentTurnIndex + 1) % AllPlayerController.Num();
+	
+	for (int32 i = 0 ; i < AllPlayerController.Num();i++)
+	{
+		if (IsValid(AllPlayerController[i]))
+		{
+			AllPlayerController[i]->ClientRPCSetTurn(i == CurrentTurnIndex);
+		}
+	}
 }
 
 FString AMainGameModeBase::JudgeResult(const FString& InSecretNumberString, const FString& InGuessNumberString)
 {
 	int32 StrikeCount = 0;
 	int32 BallCount = 0;
-	
+	UE_LOG(LogTemp,Error,TEXT("Secret : %s , Guess : %s"),*InSecretNumberString,*InGuessNumberString);
 	for (int32 i = 0; i < 3;++i)
 	{
 		if (InSecretNumberString[i] == InGuessNumberString[i])

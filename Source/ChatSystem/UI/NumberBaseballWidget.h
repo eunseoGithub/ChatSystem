@@ -28,8 +28,12 @@ public:
 	
 	void OnWidgetOpened();
 	
+	void ConsumeAttempt();
+	
 	UPROPERTY()
 	TObjectPtr<ANumberBaseballInteraction> OwnerInteraction;
+	
+	void AddChatMessage(const FString& SenderName, const FString& Message);
 private:
 	UFUNCTION()
 	void OnInputCommitted(const FText& Text, ETextCommit::Type CommitMethod);
@@ -57,6 +61,9 @@ private:
 	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> AttemptImage_3;
+	
+	int32 AttemptCount = 3;
+	bool bMyTurn = false;
 private:
 	ENumberBaseballPhase CachedGamePhase = ENumberBaseballPhase::Waiting;
 };

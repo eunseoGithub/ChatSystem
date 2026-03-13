@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ChatSystem/UI/NumberBaseballWidget.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/Actor.h"
@@ -13,7 +14,7 @@ class CHATSYSTEM_API ANumberBaseballInteraction : public AActor
 
 public:
 	ANumberBaseballInteraction();
-
+	UNumberBaseballWidget* GetWidget();
 protected:
 	virtual void BeginPlay() override;
 	

@@ -4,4 +4,5 @@ void AMainPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AMainPlayerState, bIsWidgetOpen);
+	DOREPLIFETIME(AMainPlayerState, bIsNameSet);
 }

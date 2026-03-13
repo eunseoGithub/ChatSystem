@@ -9,6 +9,7 @@ class CHATSYSTEM_API AMainPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 public:
+	UPROPERTY(Replicated)
 	bool bIsNameSet = false;
 	
 	UPROPERTY(Replicated)

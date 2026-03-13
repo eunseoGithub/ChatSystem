@@ -26,6 +26,14 @@ ANumberBaseballInteraction::ANumberBaseballInteraction()
 	
 }
 
+UNumberBaseballWidget* ANumberBaseballInteraction::GetWidget()
+{
+	return Cast<UNumberBaseballWidget>
+	(
+		WidgetComponent->GetUserWidgetObject()
+	); 
+}
+
 void ANumberBaseballInteraction::BeginPlay()
 {
 	Super::BeginPlay();

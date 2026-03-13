@@ -14,7 +14,6 @@ class CHATSYSTEM_API AMainPlayerController : public APlayerController
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
-
 private:
 	void TryInteract();
 	
@@ -26,11 +25,22 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ServerRPCSetPlayerName(const FString& InName);
 	
-	UFUNCTION(Server,Reliable)
+	UFUNCTION(Server, Reliable)
 	void ServerRPCSetWidgetOpen(bool bIsOpen);
 	
-public:
+	UFUNCTION(Server, Reliable)
+	void ServerRPCChatMessage(const FString& Message);
 	
+	UFUNCTION(Client, Reliable)
+	void ClientRPCReceiveChatMessage(const FString& SenderName, const FString& Message);
+	
+	UFUNCTION(Client, Reliable)
+	void ClientRPCSetTurn(bool bIsMyTurn);
+	
+	UFUNCTION(Client, Reliable)
+	void ClientRPCConsumeAttempt();
+	
+public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> InteractAction;
 };
