@@ -17,11 +17,9 @@ class CHATSYSTEM_API UNumberBaseballWidget : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
-	UFUNCTION(BlueprintCallable)
-	void AddGuessResult(const FString& Guess, int32 Strike, int32 Ball, bool bIsOut);
 	
 	UFUNCTION(BlueprintCallable)
-	void UpdateTimer(float RemainingTime);
+	void UpdateTimer(float InRemainingTime);
 	
 	UFUNCTION(BlueprintCallable)
 	void SetMyTurn(bool bIsMyTurn);
@@ -34,6 +32,8 @@ public:
 	TObjectPtr<ANumberBaseballInteraction> OwnerInteraction;
 	
 	void AddChatMessage(const FString& SenderName, const FString& Message);
+	
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 private:
 	UFUNCTION()
 	void OnInputCommitted(const FText& Text, ETextCommit::Type CommitMethod);
@@ -63,6 +63,8 @@ private:
 	TObjectPtr<UImage> AttemptImage_3;
 	
 	bool bMyTurn = false;
+	float RemainingTime = 0.0f;
+	bool bTimerRunning = false;
 private:
 	ENumberBaseballPhase CachedGamePhase = ENumberBaseballPhase::Waiting;
 };

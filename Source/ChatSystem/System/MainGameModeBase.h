@@ -48,11 +48,16 @@ public:
 	
 	void EndGame(const FString& WinnerName);
 	bool CheckAllAttemptsUsed() const;
+private:
+	void StartTurnTimer();
+	void OnTurnTimeout();
 protected:
 	TArray<TObjectPtr<AMainPlayerController>> AllPlayerController;
 	static constexpr int32 RequirePlayerCount = 2;
 private:
 	FString SecretNumber;
 	int32 CurrentTurnIndex = 0;
+	FTimerHandle TurnTimerHandle;
+	static constexpr float TurnTimeLimit = 10.0f;
 };
 

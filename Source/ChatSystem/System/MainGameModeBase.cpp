@@ -121,6 +121,7 @@ void AMainGameModeBase::OnPlayerNameWrite()
 					AllPlayerController[i]->ClientRPCSetTurn(i == 0);
 				}
 			}
+			StartTurnTimer();
 		}
 	}
 }
@@ -162,6 +163,7 @@ void AMainGameModeBase::SwitchTurn()
 			AllPlayerController[i]->ClientRPCSetTurn(i == CurrentTurnIndex);
 		}
 	}
+	StartTurnTimer();
 }
 
 void AMainGameModeBase::EndGame(const FString& WinnerName)
@@ -180,6 +182,7 @@ void AMainGameModeBase::EndGame(const FString& WinnerName)
 	}
 	GS->GamePhase = ENumberBaseballPhase::GameOver;
 	GS->OnGamePhaseChanged.Broadcast(ENumberBaseballPhase::GameOver);
+	GetWorldTimerManager().ClearTimer(TurnTimerHandle);
 }
 
 bool AMainGameModeBase::CheckAllAttemptsUsed() const
@@ -192,6 +195,35 @@ bool AMainGameModeBase::CheckAllAttemptsUsed() const
 			return false;
 	}
 	return true;
+}
+
+void AMainGameModeBase::StartTurnTimer()
+{
+	GetWorldTimerManager().ClearTimer(TurnTimerHandle);
+	GetWorldTimerManager().SetTimer(
+		TurnTimerHandle, this, &ThisClass::OnTurnTimeout, TurnTimeLimit, false);
+}
+
+void AMainGameModeBase::OnTurnTimeout()
+{
+	if (!AllPlayerController.IsValidIndex(CurrentTurnIndex)) return;
+	
+	AMainPlayerController* CurrentPC = AllPlayerController[CurrentTurnIndex];
+	AMainPlayerState* PS = CurrentPC->GetPlayerState<AMainPlayerState>();
+	if (!IsValid(PS)) return;
+	
+	BroadcastChatMessage(TEXT("Server"),TEXT("시간 초과!"));
+	
+	PS->AttemptCount--;
+	CurrentPC->ClientRPCConsumeAttempt(PS->AttemptCount);
+	
+	if (CheckAllAttemptsUsed())
+	{
+		BroadcastChatMessage(TEXT("Server"), TEXT("무승부"));
+		EndGame(TEXT(""));
+		return;
+	}
+	SwitchTurn();
 }
 
 FString AMainGameModeBase::JudgeResult(const FString& InSecretNumberString, const FString& InGuessNumberString)

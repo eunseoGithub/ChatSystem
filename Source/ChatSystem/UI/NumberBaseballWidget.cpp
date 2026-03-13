@@ -48,36 +48,19 @@ void UNumberBaseballWidget::OnGamePhaseChanged(ENumberBaseballPhase NewPhase)
 	case ENumberBaseballPhase::GameOver:
 		ChatInput->SetIsEnabled(false);
 		TurnText->SetText(FText::FromString("Game End"));
+		bTimerRunning = false;
 		break;
 	default:
 		UE_LOG(LogTemp,Error,TEXT("No Phase"));
 		break;
 	}
 }
-void UNumberBaseballWidget::AddGuessResult(const FString& Guess, int32 Strike, int32 Ball, bool bIsOut)
-{
-	if (!ChatBox) return;
-	FString Result;
-	
-	if (bIsOut)
-		Result = FString::Printf(TEXT("%s -> OUT"),*Guess);
-	
-	else
-		Result = FString::Printf(TEXT("%s -> %dS %dB"), *Guess, Strike, Ball);
-	UTextBlock* NewText = NewObject<UTextBlock>(this);
-	if (!NewText) return;
-	
-	NewText->SetText(FText::FromString(Result));
-	ChatBox->AddChild(NewText);
-	ChatBox->ScrollToEnd();
-	
-}
 
-void UNumberBaseballWidget::UpdateTimer(float RemainingTime)
+void UNumberBaseballWidget::UpdateTimer(float InRemainingTime)
 {
 	if (!TimerText) return;
 	
-	FString Time = FString::Printf(TEXT("%.0f초"), RemainingTime);
+	FString Time = FString::Printf(TEXT("%.0f초"), InRemainingTime);
 	TimerText->SetText(FText::FromString(Time));
 }
 
@@ -89,6 +72,9 @@ void UNumberBaseballWidget::SetMyTurn(bool bIsMyTurn)
 		TurnText->SetText(FText::FromString(bIsMyTurn ? TEXT("My Turn") : TEXT("Other Turn")));
 	}
 	if (ChatInput) ChatInput->SetIsEnabled(bIsMyTurn);
+	
+	RemainingTime = 10.0f;
+	bTimerRunning = true;
 }
 
 void UNumberBaseballWidget::OnWidgetOpened()
@@ -123,7 +109,6 @@ void UNumberBaseballWidget::ConsumeAttempt(int32 RemainingAttempt)
 		break;
 	case 0:
 		if (AttemptImage_1) AttemptImage_1->SetVisibility(ESlateVisibility::Hidden);
-		// TODO : 기회 모두 소진 - 패배 처리
 		break;
 	default:
 		break;
@@ -142,6 +127,17 @@ void UNumberBaseballWidget::AddChatMessage(const FString& SenderName, const FStr
 	ChatBox->ScrollToEnd();
 			
 	ChatInput->SetText(FText::GetEmpty());
+}
+
+void UNumberBaseballWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	if (bTimerRunning)
+	{
+		RemainingTime = FMath::Max(0.0f, RemainingTime - InDeltaTime);
+		UpdateTimer(RemainingTime);
+	}
 }
 
 void UNumberBaseballWidget::OnInputCommitted(const FText& Text, ETextCommit::Type CommitMethod)
